@@ -155,17 +155,22 @@ on_session_unsubscribed(#{clientid := ClientId}, Topic, Opts, {Filter}) ->
 %%--------------------------------------------------------------------
 on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
     {ok, Message};
-on_message_publish(Message = #message{topic = Topic, flags = #{retain := Retain}}, {Filter}) ->
-    with_filter(
-      fun() ->
-        emqx_metrics:inc('mqtt2pgsql.message_publish'),
-        %% Code Start
 
-        %% Here is the code
+on_message_publish(Message, Env) ->
+    io:format("Publish ~s~n", [emqx_message:format(Message)]),
+    io:format("Env ~p~n", Env),
+    {ok, Message}.
+% on_message_publish(Message = #message{topic = Topic, flags = #{retain := Retain}}, {Filter}) ->
+%     with_filter(
+%       fun() ->
+%         emqx_metrics:inc('mqtt2pgsql.message_publish'),
+%         %% Code Start
 
-        %% End
-        {ok, Message}
-      end, Message, Topic, Filter).
+%         %% Here is the code
+
+%         %% End
+%         {ok, Message}
+%       end, Message, Topic, Filter).
 
 %%--------------------------------------------------------------------
 %% Message deliver

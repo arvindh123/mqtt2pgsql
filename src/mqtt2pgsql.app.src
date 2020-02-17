@@ -1,5 +1,5 @@
 {application, mqtt2pgsql,
- [{description, "An EMQ X plugin"},
+ [{description, "Mqtt Plguin to persist data into PostgreSQL"},
   {vsn, "git"},
   {modules, []},
   {registered, []},
