@@ -1,0 +1,14 @@
+{application, mqtt2pgsql,
+ [{description, "An EMQ X plugin"},
+  {vsn, "git"},
+  {modules, []},
+  {registered, []},
+  {mod, {mqtt2pgsql_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {licenses, ["Apache 2.0"]},
+  {links, []}
+ ]}.
