@@ -1,27 +1,123 @@
 %%-*- mode: erlang -*-
+%% mqtt2pgsql config mapping
 
-{mapping, "mqtt2pgsql.db.$name", "mqtt2pgsql.db", [
+{mapping, "mqtt2pgsql.$id.$field.$sid.$param", "mqtt2pgsql.db", [
   {datatype, string}
 ]}.
-
-{mapping, "mqtt2pgsql.mqtt.$name.$name", "mqtt2pgsql.mqtt", [
-  {datatype, string}
-]}.
-
 
 {translation, "mqtt2pgsql.db", fun(Conf) ->
-  DbConfigs = cuttlefish_variable:filter_by_prefix("mqtt2pgsql.db", Conf),
+  AllParams = cuttlefish_variable:filter_by_prefix("mqtt2pgsql", Conf),
+
+  FId = sets:to_list(sets:from_list(lists:foldl(
+       fun({["mqtt2pgsql", Id, Field, Sid, Param], Values}, AccIn) ->
+        [ Id | AccIn];
+       (_, AccIn) ->
+        AccIn
+       end, [], AllParams))),
+
+  FFld = sets:to_list(sets:from_list(lists:foldl(
+       fun({["mqtt2pgsql", Id, Field, Sid, Param], Values}, AccIn) ->
+        [ Field | AccIn];
+       (_, AccIn) ->
+        AccIn
+       end, [], AllParams))),
+  
+                    lists:map(
+                      fun(VId) ->
+
+                          lists:map(
+                            fun(VFld) ->
+                              
+
+                              VFldParams = cuttlefish_variable:filter_by_prefix("mqtt2pgsql." ++ VId ++ "." ++ VFld, Conf),
+                              
+                              SubParamSet = sets:to_list(sets:from_list(lists:foldl(
+                                              fun({["mqtt2pgsql", Id, Field, Sid, Param], Values}, AccIn) ->
+                                                [ Sid | AccIn];
+                                              (_, AccIn) ->
+                                                AccIn
+                                              end, [], VFldParams))),
+                              { 
+                                list_to_atom(VFld) , 
+
+                                lists:map(
+                                  
+                                  fun(SubParam) -> 
+                                    lists:map(
+                                      fun({["mqtt2pgsql",Id,Field,Sid,Param], Value}) -> 
+                                        {list_to_atom(Param) , Value}
+                                      end,
+                                      cuttlefish_variable:filter_by_prefix("mqtt2pgsql." ++ VId ++ "." ++ VFld ++ "." ++ SubParam, Conf)
+                                    )
+
+                                  end,
+                                  SubParamSet
+                                )
+                              } 
+                              
+                            end,
+                            FFld
+                          ) 
+
+                      end,
+                      FId
+                    ) 
+                  
+
+end}.
+
+{mapping, "mqtt2pgsql.host", "mqtt2pgsql.host", [
+  {datatype, string}
+]}.
+
+
+
+{mapping, "mqtt2pgsql.port", "mqtt2pgsql.port", [
+  {datatype, integer}
+]}.
+
+
+{mapping, "mqtt2pgsql.username", "mqtt2pgsql.username", [
+  {datatype, string}
+]}.
+
+
+{mapping, "mqtt2pgsql.password", "mqtt2pgsql.password", [
+  {datatype, string}
+]}.
+
+{mapping, "mqtt2pgsql.dbname", "mqtt2pgsql.dbname", [
+  {datatype, string}
+]}.
+
+{mapping, "mqtt2pgsql.schemacount", "mqtt2pgsql.schemacount", [
+  {datatype, integer}
+]}.
+
+{mapping, "mqtt2pgsql.tablecount", "mqtt2pgsql.tablecount", [
+  {datatype, integer}
+]}.
+
+
+{mapping, "mqtt2pgsql.noofcon", "mqtt2pgsql.noofcon", [
+  {datatype, integer}
+]}.
+
+{translation, "mqtt2pgsql.noofcon", fun(Conf) ->
+
   lists:map(
-    fun({[_, _, Name1,  _], Val}) ->
-	  {Name1, Val}
-	end, DbConfigs)
+    fun(Number) ->
+      list_to_atom(lists:concat(["connection_", lists:flatten(io_lib:format("~p", [Number]))]))
+    end,  
+    lists:seq(1,cuttlefish:conf_get("mqtt2pgsql.noofcon", Conf)) 
+  )
 end}.
 
 
-{translation, "mqtt2pgsql.mqtt", fun(Conf) ->
-  MqttConfigs = cuttlefish_variable:filter_by_prefix("mqtt2pgsql.mqtt", Conf),
-  lists:map(
-    fun({[_, _, Name1, Name2, _], Val}) ->
-	  {lists:concat([Name1, ".", Name2]), Val}
-	end, MqttConfigs)
-end}.
+{mapping, "mqtt2pgsql.tablepre", "mqtt2pgsql.tablepre", [
+  {datatype, string}
+]}.
+
+{mapping, "mqtt2pgsql.tablepost", "mqtt2pgsql.tablepost", [
+  {datatype, string}
+]}.

@@ -1,0 +1,237 @@
+%%-*- mode: erlang -*-
+%% mqtt2pgsql config mapping
+
+{mapping, "mqtt2pgsql.db.$name", "mqtt2pgsql.db", [
+  {datatype, string}
+]}.
+
+{mapping, "mqtt2pgsql.mqtt.$name.$name", "mqtt2pgsql.mqtt", [
+  {datatype, string}
+]}.
+
+
+{translation, "mqtt2pgsql.db", fun(Conf) ->
+  DbConfigs = cuttlefish_variable:filter_by_prefix("mqtt2pgsql.db", Conf),
+  lists:map(
+    fun({[_, _, Name1,  _], Val}) ->
+	  {Name1, Val}
+	end, DbConfigs)
+end}.
+
+
+{translation, "mqtt2pgsql.mqtt", fun(Conf) ->
+  MqttConfigs = cuttlefish_variable:filter_by_prefix("mqtt2pgsql.mqtt", Conf),
+  lists:map(
+    fun({[_, _, Name1, Name2, _], Val}) ->
+	  {lists:concat([Name1, ".", Name2]), Val}
+	end, MqttConfigs)
+end}.
+
+=====================V2======================
+
+%%-*- mode: erlang -*-
+%% mqtt2pgsql config mapping
+
+{mapping, "mqtt2pgsql.db.$field", "mqtt2pgsql.db", [
+  {datatype, string}
+]}.
+
+
+
+{translation, "mqtt2pgsql.db", fun(Conf) ->
+  lists:map(
+      fun({["mqtt2pgsql",Id, "db", Field], Value}) ->
+          {list_to_atom(Field), Value}
+      end,
+      cuttlefish_variable:filter_by_prefix("mqtt2pgsql.$id.db", Conf))
+end}.
+
+
+
+{mapping, "mqtt2pgsql.mqtt.$id.$param", "mqtt2pgsql.mqtt", [
+  {datatype, string}
+]}.
+
+
+{translation, "mqtt2pgsql.mqtt", fun(Conf) ->
+  lists:map(
+      fun({["mqtt2pgsql", "mqtt", Id,Param], Value}) ->
+          lists:map(
+              fun({["mqtt2pgsql", "mqtt", Id,Param], Value}) ->
+                  {list_to_atom(Param), Value}
+              end,
+              cuttlefish_variable:filter_by_prefix(lists:concat(["mqtt2pgsql.mqtt", "." ,Id]), Conf))
+      end,
+      cuttlefish_variable:filter_by_prefix("mqtt2pgsql.mqtt", Conf))
+end}.
+
+===================Conf v3=========================
+mqtt2pgsql.1.db.host = localhost
+mqtt2pgsql.1.db.port = 9092
+mqtt2pgsql.1.db.username = postgres
+mqtt2pgsql.1.db.password = postgres 
+
+mqtt2pgsql.2.db.host = localhost
+mqtt2pgsql.2.db.port = 9092
+mqtt2pgsql.2.db.username = postgres
+mqtt2pgsql.2.db.password = postgres 
+
+mqtt2pgsql.3.db.host = localhost
+mqtt2pgsql.3.db.port = 9092
+mqtt2pgsql.3.db.username = postgres
+mqtt2pgsql.3.db.password = postgres 
+
+
+mqtt2pgsql.mqtt.1.topic  = SGIPL/EMS/1
+mqtt2pgsql.mqtt.1.table  =  meter1
+mqtt2pgsql.mqtt.1.schema  = json1
+
+
+mqtt2pgsql.mqtt.2.topic  = SGIPL/EMS/2
+mqtt2pgsql.mqtt.2.table  =  meter2
+mqtt2pgsql.mqtt.2.schema  = json2
+
+
+mqtt2pgsql.mqtt.3.topic  = SGIPL/EMS/3
+mqtt2pgsql.mqtt.3.table  =  meter3
+mqtt2pgsql.mqtt.3.schema  = json3
+
+
+mqtt2pgsql.mqtt.4.topic  = SGIPL/EMS/4
+mqtt2pgsql.mqtt.4.table  =  meter4
+mqtt2pgsql.mqtt.4.schema  = json4
+
+======================schema v3==========
+%%-*- mode: erlang -*-
+%% mqtt2pgsql config mapping
+
+{mapping, "mqtt2pgsql.$id.db.$field", "mqtt2pgsql.db", [
+  {datatype, string}
+]}.
+
+
+
+{mapping, "mqtt2pgsql.$id.mqtt.$sid.$param", "mqtt2pgsql.mqtt", [
+  {datatype, string}
+]}.
+
+
+
+
+{translation, "mqtt2pgsql.configu", fun(Conf) ->
+  lists:map(
+      fun({["mqtt2pgsql", Id], Value}) ->
+          lists:map(
+              fun({["mqtt2pgsql",Id, "db", Field], Value}) ->
+                      {list_to_atom(Field), Value}
+               end,
+              cuttlefish_variable:filter_by_prefix(lists:concat(["mqtt2pgsql", "." ,Id,".db"]), Conf)),
+          lists:map(
+              fun({["mqtt2pgsql", Id,"mqtt", Sid,Param], Value}) ->
+                  lists:map(
+                      fun({["mqtt2pgsql", Id,"mqtt",Sid,Param], Value}) ->
+                          {list_to_atom(Param), Value}
+                  end,
+                  cuttlefish_variable:filter_by_prefix(lists:concat(["mqtt2pgsql", "." ,Id,".mqtt.",Sid]), Conf))
+              end,
+              cuttlefish_variable:filter_by_prefix(lists:concat(["mqtt2pgsql", "." ,Id,".mqtt"]), Conf))
+      end,
+      cuttlefish_variable:filter_by_prefix("mqtt2pgsql", Conf))
+end}.
+
+
+
+
+
+mqtt2pgsql.db.1.host = localhost
+mqtt2pgsql.db.1.port = 9092
+mqtt2pgsql.db.1.username = postgres
+mqtt2pgsql.db.1.password = postgres 
+
+mqtt2pgsql.db.2.host = localhost
+mqtt2pgsql.db.2.port = 9092
+mqtt2pgsql.db.2.username = postgres
+mqtt2pgsql.db.2.password = postgres 
+
+mqtt2pgsql.db.3.host = localhost
+mqtt2pgsql.db.3.port = 9092
+mqtt2pgsql.db.3.username = postgres
+mqtt2pgsql.db.3.password = postgres 
+
+
+mqtt2pgsql.mqtt.1.topic.1  = SGIPL/EMS/1
+mqtt2pgsql.mqtt.1.table.1  =  meter1
+mqtt2pgsql.mqtt.1.schema.1  = json1
+
+
+mqtt2pgsql.mqtt.1.topic.2  = SGIPL/EMS/2
+mqtt2pgsql.mqtt.1.table.2  =  meter2
+mqtt2pgsql.mqtt.1.schema.2  = json2
+
+
+mqtt2pgsql.mqtt.1.topic.3  = SGIPL/EMS/3
+mqtt2pgsql.mqtt.1.table.3  =  meter3
+mqtt2pgsql.mqtt.1.schema.3  = json3
+
+
+mqtt2pgsql.mqtt.1.topic.4  = SGIPL/EMS/4
+mqtt2pgsql.mqtt.1.table.4  =  meter4
+mqtt2pgsql.mqtt.1.schema.4  = json4
+
+
+[ 
+  [
+    {db, [{host, "127.0.0.1"}, {port , "2312"}, {username , "admin"}, {password, "public"}]},
+    {mqtt, [ 
+              [ {topic , "hello/topic/1"}, {schema , "json" }, {table , "ems-test" }],
+              [ {topic , "hello/topic/1"}, {schema , "json" }, {table , "ems-test" }],
+              [ {topic , "hello/topic/1"}, {schema , "json" }, {table , "ems-test" }]
+
+
+           ]
+    }
+  ],
+  [
+    {db, [{host, "127.0.0.1"}, {port , "2312"}, {username , "admin"}, {password, "public"}]},
+    {mqtt, [ 
+              [ {topic , "hello/topic/1"}, {schema , "json" }, {table , "ems-test" }],
+              [ {topic , "hello/topic/1"}, {schema , "json" }, {table , "ems-test" }],
+              [ {topic , "hello/topic/1"}, {schema , "json" }, {table , "ems-test" }]
+
+
+           ]
+    }
+  ],
+
+
+
+]
+
+[
+  [
+    {db,[
+          {password,"postgres"},
+          {username,"postgres"},
+          {port,"9092"},
+          {host,"localhost"}
+        ]
+    },
+
+    {mqtt,[
+            {schema,"json4"},
+            {table,"meter4"},
+            {topic,"SGIPL/EMS/4"},
+            {schema,"json3"},
+            {table,"meter3"},
+            {topic,"SGIPL/EMS/3"},
+            {schema,"json2"},
+            {table,"meter2"},
+            {topic,"SGIPL/EMS/2"},
+            {schema,"json1"},
+            {table,"meter1"},
+            {topic,"SGIPL/EMS/1"}
+          ]
+    }
+  ]
+]
+

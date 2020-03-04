@@ -9,6 +9,7 @@
 
 -include("mqtt2pgsql.hrl").
 
+
 -emqx_plugin(?MODULE).
 
 -export([ start/2
@@ -17,10 +18,13 @@
 
 start(_StartType, _StartArgs) ->
     {ok, Sup} = mqtt2pgsql_sup:start_link(),
-    ?APP:load(),
-    ?APP:register_metrics(),
+    mqtt2pgsql:load(application:get_all_env()),
+    {ok, Db} = application:get_env(mqtt2pgsql, db),
+    io:format("Database Host ~p~n ", [Db]),
+    % {ok, MqttParam} = application:get_env(mqtt2pgsql, mqtt),
+    % io:format("Database Host ~p~n ", [MqttParam]),
     {ok, Sup}.
 
 stop(_State) ->
-    ?APP:unload(),
-    ok.
+    mqtt2pgsql:unload(application:get_all_env()).
+

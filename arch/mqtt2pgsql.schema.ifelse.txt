@@ -1,0 +1,86 @@
+%%-*- mode: erlang -*-
+%% mqtt2pgsql config mapping
+
+{mapping, "mqtt2pgsql.$id.$field.$sid.$param", "mqtt2pgsql.db", [
+  {datatype, string}
+]}.
+
+{translation, "mqtt2pgsql.db", fun(Conf) ->
+  AllParams = cuttlefish_variable:filter_by_prefix("mqtt2pgsql", Conf),
+
+  FId = sets:to_list(sets:from_list(lists:foldl(
+       fun({["mqtt2pgsql", Id, Field, Sid, Param], Values}, AccIn) ->
+        [ Id | AccIn];
+       (_, AccIn) ->
+        AccIn
+       end, [], AllParams))),
+
+  FFld = sets:to_list(sets:from_list(lists:foldl(
+       fun({["mqtt2pgsql", Id, Field, Sid, Param], Values}, AccIn) ->
+        [ Field | AccIn];
+       (_, AccIn) ->
+        AccIn
+       end, [], AllParams))),
+  
+
+  lists:map(
+    fun(VId) ->
+
+        lists:map(
+          fun(VFld) ->
+            
+            if 
+              VFld == "db" -> 
+                             
+                { 
+                  list_to_atom(VFld) , 
+                
+                  lists:map(
+                    fun({["mqtt2pgsql",Id,Field,Sid,Param], Value}) -> 
+                      {list_to_atom(Param) , Value}
+                    end,
+                    cuttlefish_variable:filter_by_prefix("mqtt2pgsql." ++ VId ++ "." ++ VFld, Conf)
+                  )
+                } ;
+              
+              true -> 
+                VFldParams = cuttlefish_variable:filter_by_prefix("mqtt2pgsql." ++ VId ++ "." ++ VFld, Conf),
+
+                SubParamSet = sets:to_list(sets:from_list(lists:foldl(
+                                fun({["mqtt2pgsql", Id, Field, Sid, Param], Values}, AccIn) ->
+                                  [ Sid | AccIn];
+                                (_, AccIn) ->
+                                  AccIn
+                                end, [], VFldParams))),
+                
+                { 
+                  list_to_atom(VFld) , 
+
+                  lists:map(
+                    
+                    fun(SubParam) -> 
+                      lists:map(
+                        fun({["mqtt2pgsql",Id,Field,Sid,Param], Value}) -> 
+                          {list_to_atom(Param) , Value}
+                        end,
+                        cuttlefish_variable:filter_by_prefix("mqtt2pgsql." ++ VId ++ "." ++ VFld ++ "." ++ SubParam, Conf)
+                      )
+
+                    end,
+                    SubParamSet
+                  )
+                }
+        
+          end,
+          FFld
+        ) 
+
+    end,
+    FId
+  ) 
+
+end}.
+
+
+
+
