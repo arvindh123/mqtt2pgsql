@@ -299,4 +299,3 @@ unload(Env) ->
     closeDbConnction(Env),
     emqx:unhook('message.publish',{?MODULE, on_message_publish}).
 
-

@@ -27,4 +27,3 @@ start(_StartType, _StartArgs) ->
 
 stop(_State) ->
     mqtt2pgsql:unload(application:get_all_env()).
-
