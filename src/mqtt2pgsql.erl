@@ -147,7 +147,15 @@ on_message_publish(Message = #message{topic =
     {ok, Message};
 on_message_publish(Message, Env) ->
     % io:format("Publish ~s~n", [emqx_message:format(Message)]),
+    MessageMaps = emqx_message:to_map(Message),
+    % io:format("Publish ~p~n", [MessageMaps]),
+    % io:format("Publish ~p~n", [emqx_message:to_list(Message)]),
+    % io:format("Publish ~p~n", [Env]),
+
+
+
     Topic = string:split(emqx_message:topic(Message), "/",all), 
+    
     Payload = emqx_message:payload(Message),
     {ok, SchemaNo} = application:get_env(mqtt2pgsql, schemacount),
     {ok, TableNo} = application:get_env(mqtt2pgsql, tablecount),
@@ -163,8 +171,11 @@ on_message_publish(Message, Env) ->
       true -> 
         case (length(Topic) >= SchemaNo)  and (length(Topic) >= TableNo) of 
           true  -> 
-
-            PayloadMap = MessageMaps = jsx:decode(Payload, [return_maps]),
+            Ots = maps:merge(
+                              maps:put(mqtt2db_ts , os:system_time(), maps:new()) , 
+                              maps:put(mqtt_recv_ts , maps:get(timestamp,MessageMaps), maps:new())
+                            ),
+            PayloadMap  = maps:merge( jsx:decode(Payload, [return_maps]),Ots),
             HeadersBin = maps:keys(PayloadMap),
             Headers = string:join(["" ++ mqtt2pgsql:cts(X) ++ "" || X <- HeadersBin], ","),
             Values = string:join(["'" ++ mqtt2pgsql:cts(X) ++ "'" || X <- lists:map( fun(HeaderBin) -> maps:get(HeaderBin, PayloadMap) end,HeadersBin)], ","), 
