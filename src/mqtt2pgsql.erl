@@ -1,5 +1,9 @@
 %%--------------------------------------------------------------------
+<<<<<<< HEAD
 %%  License - :-)
+=======
+%% License - :-)
+>>>>>>> b441d791cfdf198a6914fde1a28e8a89d7dce1e0
 %%--------------------------------------------------------------------
 
 -module(mqtt2pgsql).
@@ -14,7 +18,11 @@
 
 -export([cts/1, write/3]).
 
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> b441d791cfdf198a6914fde1a28e8a89d7dce1e0
 load(Env) ->
     connectPid(Env),
     emqx:hook('message.publish', {?MODULE, on_message_publish, [Env]}).
