@@ -61,7 +61,7 @@ on_message_publish(Message, Env) ->
             Values = string:join(["'" ++ mqtt2pgsql:cts(X) ++ "'" || X <- lists:map( fun(HeaderBin) -> maps:get(HeaderBin, PayloadMap) end,HeadersBin)], ","), 
             Query = io_lib:format("INSERT INTO  ~s.~s (~s) VALUES(~s) ~n", [mqtt2pgsql:cts(lists:nth(SchemaNo,Topic)), Table, Headers, Values] ),
             % io:format("Query - ~s~n", [Query]),
-            lists:nth(rand:uniform(length(PidNames)), PidNames)
+            % lists:nth(rand:uniform(length(PidNames)), PidNames)
             % mqtt2pgsql:write(list_to_atom(lists:flatten(io_lib:format("connection_~p", [rand:uniform(10)]))), Query, Env);
             mqtt2pgsql:write(lists:nth(rand:uniform(length(PidNames)), PidNames), Query, Env);
             
