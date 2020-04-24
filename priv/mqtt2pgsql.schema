@@ -107,7 +107,7 @@ end}.
 
   lists:map(
     fun(Number) ->
-      list_to_atom(lists:concat(["connection_", lists:flatten(io_lib:format("~p", [Number]))]))
+      list_to_atom(lists:concat(["mqtt2pgsql_conn_", lists:flatten(io_lib:format("~p", [Number]))]))
     end,  
     lists:seq(1,cuttlefish:conf_get("mqtt2pgsql.noofcon", Conf)) 
   )
