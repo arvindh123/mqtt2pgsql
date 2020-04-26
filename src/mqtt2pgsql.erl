@@ -78,8 +78,8 @@ on_message_publish(Message, Env) ->
 
 
 write(NamePid, Query,Env) ->
-  io:format("Name of Connection -  ~p~n", [NamePid]), 
-  io:format("Executed Query  -  ~p~n", [Query]), 
+  % io:format("Name of Connection -  ~p~n", [NamePid]), 
+  % io:format("Executed Query  -  ~p~n", [Query]), 
     case whereis(NamePid) of 
         undefined ->
             case mqtt2pgsql:connect(NamePid,Env)  of 
