@@ -19,7 +19,7 @@ load(Host, Port, Username, Password, Dbname, PidNames, SchemaNo, TableNo, TableP
     emqx:hook('message.publish', {?MODULE, on_message_publish, [PidNames, SchemaNo, TableNo, TablePre, TablePost]}).
 
 
-on_message_publish(Message = #message{topic =<<"$SYS/", _/binary>>}, _PidNames, _SchemaNo, _TableNo, _TablePre, _TablePost) ->
+on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _PidNames, _SchemaNo, _TableNo, _TablePre, _TablePost) ->
     {ok, Message};
 
 on_message_publish(Message, PidNames, SchemaNo, TableNo, TablePre, TablePost) ->
