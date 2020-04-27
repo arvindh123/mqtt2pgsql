@@ -22,7 +22,7 @@ load(Host, Port, Username, Password, Dbname, PidNames, SchemaNo, TableNo, TableP
 on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Host, _Port, _Username, _Password, _Dbname, _PidNames, _SchemaNo, _TableNo, _TablePre, _TablePost) ->
     {ok, Message};
 
-on_message_publish(Message, Host, Port, Username, Password, Dbname, PidNames, SchemaNo, TableNo, TablePre, TablePost) ->
+on_message_publish(Message, Host, Port, Username, Password, Dbname, PidNames, SchemaNo, TableNo, _TablePre, _TablePost) ->
     % io:format("Publish ~s~n", [emqx_message:format(Message)]),
     % io:format("Publish ~s~n", [emqx_message:format(Env)]),
     MessageMaps = emqx_message:to_map(Message),
@@ -82,8 +82,8 @@ write(NamePid, Query,Host, Port, Username, Password, Dbname) ->
     case whereis(NamePid) of 
         undefined ->
             case mqtt2pgsql:connect(NamePid,Host, Port, Username, Password, Dbname)  of 
-                {ok,Pid} ->
-                    write(NamePid,Query,Env);
+                {ok,_Pid} ->
+                    write(NamePid,Query,Host, Port, Username, Password, Dbname);
                 {Reason} ->
                     {error, Reason}
             end;
@@ -91,7 +91,7 @@ write(NamePid, Query,Host, Port, Username, Password, Dbname) ->
             case epgsql:squery(Pid,Query)  of 
                 {error,Reason} ->
                     io:format("epgsql:param_query Error in Writing to DB: ~p~n", [Reason]);
-                {ok, Done} ->
+                {ok, _Done} ->
                     ok
                     % io:format("odbc:param_query ResultTuple: ~p~n", [ResultTuple])
             end
@@ -135,7 +135,7 @@ closeDbConnction(PidNames) ->
   lists:map(
     fun(NamePid) ->
       case whereis(NamePid) of 
-          Pid ->
+          _Pid ->
               epgsql:close(NamePid)
       end
     end,
