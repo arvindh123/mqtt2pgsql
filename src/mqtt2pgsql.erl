@@ -8,11 +8,11 @@
 
 -export([load/10, unload/1]).
 
--export([connect/2, connectPid/1, closeDbConnction/1]). 
+-export([connect/6, connectPid/6, closeDbConnction/1]). 
 
--export([on_message_publish/2]).    
+-export([on_message_publish/6]).    
 
--export([cts/1, write/3]).
+-export([cts/1, write/3]). 
 
 load(Host, Port, Username, Password, Dbname, PidNames, SchemaNo, TableNo, TablePre, TablePost) ->
     connectPid(PidNames),
@@ -97,19 +97,19 @@ write(NamePid, Query,Env) ->
             end
     end.
 
-connectPid(PidNames,Host, Port, Username, Password, Dbname,) ->
+connectPid(PidNames,Host, Port, Username, Password, Dbname) ->
  
   lists:map(
     fun(NamePid) ->
       case whereis(NamePid) of 
           undefined ->
-            mqtt2pgsql:connect(NamePid,Host, Port, Username, Password, Dbname,)
+            mqtt2pgsql:connect(NamePid,Host, Port, Username, Password, Dbname)
       end
     end,
     PidNames
   ).
 
-connect(NamePid,Host, Port, Username, Password, Dbname,) ->
+connect(NamePid,Host, Port, Username, Password, Dbname) ->
   % {ok ,Host} = application:get_env(mqtt2pgsql, host), 
   % {ok ,Port} = application:get_env(mqtt2pgsql, port),
   % {ok ,Username} = application:get_env(mqtt2pgsql, username),
