@@ -6,7 +6,7 @@
 
 -include_lib("emqx/include/emqx.hrl").
 
--export([load/1, unload/1]).
+-export([load/10, unload/1]).
 
 -export([connect/2, connectPid/1, closeDbConnction/1]). 
 
@@ -14,16 +14,15 @@
 
 -export([cts/1, write/3]).
 
-load(Env) ->
-    connectPid(Env),
-    emqx:hook('message.publish', {?MODULE, on_message_publish, [Env]}).
+load(Host, Port, Username, Password, Dbname, PidNames, SchemaNo, TableNo, TablePre, TablePost) ->
+    connectPid(PidNames),
+    emqx:hook('message.publish', {?MODULE, on_message_publish, [Host, Port, Username, Password, Dbname, PidNames, SchemaNo, TableNo, TablePre, TablePost]}).
 
 
-on_message_publish(Message = #message{topic =
-					  <<"$SYS/", _/binary>>},
-		   Env) ->
+on_message_publish(Message = #message{topic =<<"$SYS/", _/binary>>}, _PidNames, _SchemaNo, _TableNo, _TablePre, _TablePost) ->
     {ok, Message};
-on_message_publish(Message, Env) ->
+
+on_message_publish(Message, PidNames, SchemaNo, TableNo, TablePre, TablePost) ->
     % io:format("Publish ~s~n", [emqx_message:format(Message)]),
     % io:format("Publish ~s~n", [emqx_message:format(Env)]),
     MessageMaps = emqx_message:to_map(Message),
@@ -32,15 +31,15 @@ on_message_publish(Message, Env) ->
     % io:format("Publish ~p~n", [Env]),
 
 
-    {ok, PidNames } = application:get_env(mqtt2pgsql, noofcon),
+    % {ok, PidNames } = application:get_env(mqtt2pgsql, noofcon),
 
     Topic = string:split(emqx_message:topic(Message), "/",all), 
     
     Payload = emqx_message:payload(Message),
-    {ok, SchemaNo} = application:get_env(mqtt2pgsql, schemacount),
-    {ok, TableNo} = application:get_env(mqtt2pgsql, tablecount),
-    {ok, TablePre} = application:get_env(mqtt2pgsql, tablepre),
-    {ok, TablePost} = application:get_env(mqtt2pgsql, tablepost),    
+    % {ok, SchemaNo} = application:get_env(mqtt2pgsql, schemacount),
+    % {ok, TableNo} = application:get_env(mqtt2pgsql, tablecount),
+    % {ok, TablePre} = application:get_env(mqtt2pgsql, tablepre),
+    % {ok, TablePost} = application:get_env(mqtt2pgsql, tablepost),    
     % Schema = lists:nth(SchemaNo, Topic),
     Table = "\"" ++ binary_to_list(lists:nth(TableNo, Topic)) ++ "\"",
     % Table =  binary_to_list(lists:nth(TableNo, Topic)) ,
@@ -98,27 +97,24 @@ write(NamePid, Query,Env) ->
             end
     end.
 
-connectPid(Env) ->
-  io:format("Env ~p~n", [Env]),
-
-  {ok, PidNames } = application:get_env(mqtt2pgsql, noofcon),
-  
+connectPid(PidNames,Host, Port, Username, Password, Dbname,) ->
+ 
   lists:map(
     fun(NamePid) ->
       case whereis(NamePid) of 
           undefined ->
-            mqtt2pgsql:connect(NamePid,Env)
+            mqtt2pgsql:connect(NamePid,Host, Port, Username, Password, Dbname,)
       end
     end,
     PidNames
   ).
 
-connect(NamePid,Env) ->
-  {ok ,Host} = application:get_env(mqtt2pgsql, host), 
-  {ok ,Port} = application:get_env(mqtt2pgsql, port),
-  {ok ,Username} = application:get_env(mqtt2pgsql, username),
-  {ok ,Password} = application:get_env(mqtt2pgsql, password),
-  {ok, Dbname} = application:get_env(mqtt2pgsql, dbname),
+connect(NamePid,Host, Port, Username, Password, Dbname,) ->
+  % {ok ,Host} = application:get_env(mqtt2pgsql, host), 
+  % {ok ,Port} = application:get_env(mqtt2pgsql, port),
+  % {ok ,Username} = application:get_env(mqtt2pgsql, username),
+  % {ok ,Password} = application:get_env(mqtt2pgsql, password),
+  % {ok, Dbname} = application:get_env(mqtt2pgsql, dbname),
 
   case epgsql:connect(Host, Username, Password , #{port => Port , database => Dbname}) of 
     undefined -> io:format("DB Error        -  Ubdefined ~n") ;
@@ -134,8 +130,8 @@ connect(NamePid,Env) ->
   end.
     
 
-closeDbConnction(Env) ->
-  {ok, PidNames } = application:get_env(mqtt2pgsql, noofcon),
+closeDbConnction(PidNames) ->
+  % {ok, PidNames } = application:get_env(mqtt2pgsql, noofcon),
   lists:map(
     fun(NamePid) ->
       case whereis(NamePid) of 
@@ -158,7 +154,7 @@ cts(Value) ->
 
 
 %% Called when the plugin application stop
-unload(Env) ->
-    closeDbConnction(Env),
+unload(PidNames) ->
+    closeDbConnction(PidNames),
     emqx:unhook('message.publish',{?MODULE, on_message_publish}).
 
