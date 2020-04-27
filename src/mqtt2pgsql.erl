@@ -10,19 +10,19 @@
 
 -export([connect/6, connectPid/6, closeDbConnction/1]). 
 
--export([on_message_publish/6]).    
+-export([on_message_publish/11]).    
 
--export([cts/1, write/3]). 
+-export([cts/1, write/7]). 
 
 load(Host, Port, Username, Password, Dbname, PidNames, SchemaNo, TableNo, TablePre, TablePost) ->
     connectPid(PidNames,Host, Port, Username, Password, Dbname),
     emqx:hook('message.publish', {?MODULE, on_message_publish, [PidNames, SchemaNo, TableNo, TablePre, TablePost]}).
 
 
-on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _PidNames, _SchemaNo, _TableNo, _TablePre, _TablePost) ->
+on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Host, _Port, _Username, _Password, _Dbname, _PidNames, _SchemaNo, _TableNo, _TablePre, _TablePost) ->
     {ok, Message};
 
-on_message_publish(Message, PidNames, SchemaNo, TableNo, TablePre, TablePost) ->
+on_message_publish(Message, Host, Port, Username, Password, Dbname, PidNames, SchemaNo, TableNo, TablePre, TablePost) ->
     % io:format("Publish ~s~n", [emqx_message:format(Message)]),
     % io:format("Publish ~s~n", [emqx_message:format(Env)]),
     MessageMaps = emqx_message:to_map(Message),
@@ -62,7 +62,7 @@ on_message_publish(Message, PidNames, SchemaNo, TableNo, TablePre, TablePost) ->
             % io:format("Query - ~s~n", [Query]),
             % lists:nth(rand:uniform(length(PidNames)), PidNames)
             % mqtt2pgsql:write(list_to_atom(lists:flatten(io_lib:format("connection_~p", [rand:uniform(10)]))), Query, Env);
-            mqtt2pgsql:write(lists:nth(rand:uniform(length(PidNames)), PidNames), Query, Env);
+            mqtt2pgsql:write(lists:nth(rand:uniform(length(PidNames)), PidNames), Query, Host, Port, Username, Password, Dbname);
             
           false ->
             io:format("SchemaNo or TableNo or both worng Topic list - ~p    SchemaNo - ~p   TableNo -  ~p ~n", [Topic, SchemaNo, TableNo] )
@@ -76,12 +76,12 @@ on_message_publish(Message, PidNames, SchemaNo, TableNo, TablePre, TablePost) ->
     {ok, Message}.
 
 
-write(NamePid, Query,Env) ->
+write(NamePid, Query,Host, Port, Username, Password, Dbname) ->
   % io:format("Name of Connection -  ~p~n", [NamePid]), 
   % io:format("Executed Query  -  ~p~n", [Query]), 
     case whereis(NamePid) of 
         undefined ->
-            case mqtt2pgsql:connect(NamePid,Env)  of 
+            case mqtt2pgsql:connect(NamePid,Host, Port, Username, Password, Dbname)  of 
                 {ok,Pid} ->
                     write(NamePid,Query,Env);
                 {Reason} ->
@@ -155,6 +155,6 @@ cts(Value) ->
 
 %% Called when the plugin application stop
 unload(PidNames) ->
-    closeDbConnction(PidNames),
-    emqx:unhook('message.publish',{?MODULE, on_message_publish}).
+    emqx:unhook('message.publish',{?MODULE, on_message_publish}),
+    closeDbConnction(PidNames).
 
