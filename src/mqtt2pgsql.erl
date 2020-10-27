@@ -16,7 +16,7 @@
 
 load(Host, Port, Username, Password, Dbname, PidNames, SchemaNo, TableNo, TablePre, TablePost) ->
     connectPid(PidNames,Host, Port, Username, Password, Dbname),
-    emqx:hook('message.publish', {?MODULE, on_message_publish, [PidNames, SchemaNo, TableNo, TablePre, TablePost]}).
+    emqx:hook('message.publish', {?MODULE, on_message_publish, [Host, Port, Username, Password, Dbname, PidNames, SchemaNo, TableNo, TablePre, TablePost]}).
 
 
 on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Host, _Port, _Username, _Password, _Dbname, _PidNames, _SchemaNo, _TableNo, _TablePre, _TablePost) ->
