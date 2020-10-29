@@ -50,11 +50,12 @@ on_message_publish(Message, Host, Port, Username, Password, Dbname, PidNames, Sc
       true -> 
         case (length(Topic) >= SchemaNo)  and (length(Topic) >= TableNo) of 
           true  -> 
-            Ots = maps:merge(
-                              maps:put(mqtt2db_ts , os:system_time(), maps:new()) , 
-                              maps:put(mqtt_recv_ts , maps:get(timestamp,MessageMaps), maps:new())
-                            ),
-            PayloadMap  = maps:merge( jsx:decode(Payload, [return_maps]),Ots),
+            % Ots = maps:merge(
+            %                   maps:put(mqtt2db_ts , os:system_time(), maps:new()) , 
+            %                   maps:put(mqtt_recv_ts , maps:get(timestamp,MessageMaps), maps:new())
+            %                 ),
+            % PayloadMap  = maps:merge( jsx:decode(Payload, [return_maps]),Ots),
+            PayloadMap  = jsx:decode(Payload, [return_maps]),
             HeadersBin = maps:keys(PayloadMap),
             Headers = string:join(["" ++ mqtt2pgsql:cts(X) ++ "" || X <- HeadersBin], ","),
             Values = string:join(["'" ++ mqtt2pgsql:cts(X) ++ "'" || X <- lists:map( fun(HeaderBin) -> maps:get(HeaderBin, PayloadMap) end,HeadersBin)], ","), 
