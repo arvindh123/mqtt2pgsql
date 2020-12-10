@@ -59,7 +59,7 @@ on_message_publish(Message, Host, Port, Username, Password, Dbname, PidNames, Sc
             HeadersBin = maps:keys(PayloadMap),
             Headers = string:join(["" ++ mqtt2pgsql:cts(X) ++ "" || X <- HeadersBin], ","),
             Values = string:join(["'" ++ mqtt2pgsql:cts(X) ++ "'" || X <- lists:map( fun(HeaderBin) -> maps:get(HeaderBin, PayloadMap) end,HeadersBin)], ","), 
-            Query = io_lib:format("BEGIN ; INSERT INTO  ~s.~s (~s) VALUES(~s) ~n ; COMMIT ", [mqtt2pgsql:cts(lists:nth(SchemaNo,Topic)), Table, Headers, Values] ),
+            Query = io_lib:format("BEGIN ; INSERT INTO  ~s.~s (~s) VALUES(~s) ~n ; COMMIT ; EXCEPTION ; WHEN OTHERS THEN ROLLBACK; END;", [mqtt2pgsql:cts(lists:nth(SchemaNo,Topic)), Table, Headers, Values] ),
             % io:format("Query - ~s~n", [Query]),
             % lists:nth(rand:uniform(length(PidNames)), PidNames)
             % mqtt2pgsql:write(list_to_atom(lists:flatten(io_lib:format("connection_~p", [rand:uniform(10)]))), Query, Env);
