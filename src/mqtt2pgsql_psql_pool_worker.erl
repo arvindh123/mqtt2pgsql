@@ -13,6 +13,9 @@ start_link(Args) ->
 
 init(Args) ->
     process_flag(trap_exit, true),
+    start_connection_loop(Args).
+
+start_connection_loop(Args) ->
     Hostname = proplists:get_value(hostname, Args),
     Database = proplists:get_value(database, Args),
     Username = proplists:get_value(username, Args),
@@ -25,7 +28,8 @@ init(Args) ->
             {ok, #state{conn=Conn}};
         {error, Reason} ->
             io:format("Error connecting to the database: ~p~n", [Reason]),
-            {error, Reason}
+            timer:sleep(5000),
+            start_connection_loop(Args)
     end.
 
 
