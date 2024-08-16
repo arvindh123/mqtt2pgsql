@@ -58,10 +58,14 @@ start(_StartType, _StartArgs) ->
     ErrorTable = maps:get(<<"error_table">>, maps:get(<<"mqtt2pgsql">>, Mqtt2PgsqlConfig)),
     io:format("ErrorTable: ~p~n", [ErrorTable]),
 
+    ForceRetainMsg = maps:get(<<"force_retain_msg">>, maps:get(<<"mqtt2pgsql">>, Mqtt2PgsqlConfig)),
+    io:format("ForceRetainMsg: ~p~n", [ForceRetainMsg]),
+
+
     % Host, Port, Username, Password, Dbname, PidNames, SchemaNo, TableNo, TablePre, TablePost
     {ok, Sup} = mqtt2pgsql_sup:start_link(SupArgs),
 
-    mqtt2pgsql:load(SchemaNo, TableNo, TablePre, TablePost, ErrorSchema, ErrorTable),
+    mqtt2pgsql:load(SchemaNo, TableNo, TablePre, TablePost, ErrorSchema, ErrorTable, ForceRetainMsg),
 
     emqx_ctl:register_command(mqtt2pgsql, {mqtt2pgsql_cli, cmd}),
     {ok, Sup}.

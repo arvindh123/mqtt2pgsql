@@ -13,4 +13,5 @@ mqtt2pgsql {
     tablepost =  "\""
     error_schema = public
     error_table = errors
+    force_retain_msg = true
 }

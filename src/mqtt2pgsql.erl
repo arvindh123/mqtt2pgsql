@@ -8,23 +8,23 @@
 %% for logging
 -include_lib("emqx/include/logger.hrl").
 
--export([load/6, unload/0]).
+-export([load/7, unload/0]).
 
--export([on_message_publish/7]).
+-export([on_message_publish/8]).
 
 
-load(SchemaNo, TableNo, TablePre, TablePost, ErrorSchema, ErrorTable) ->
-    emqx_hooks:add('message.publish', {?MODULE, on_message_publish, [  SchemaNo, TableNo, TablePre, TablePost, ErrorSchema, ErrorTable]}, _Property = ?HP_HIGHEST).
+load(SchemaNo, TableNo, TablePre, TablePost, ErrorSchema, ErrorTable, ForceRetainMsg) ->
+    emqx_hooks:add('message.publish', {?MODULE, on_message_publish, [  SchemaNo, TableNo, TablePre, TablePost, ErrorSchema, ErrorTable, ForceRetainMsg]}, _Property = ?HP_HIGHEST).
 
 %% Called when the plugin application stop
 unload() ->
     emqx_hooks:del('message.publish',{?MODULE, on_message_publish}).
 
 
-on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _SchemaNo, _TableNo, _TablePre, _TablePost,  _ErrorSchema, _ErrorTable) ->
+on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _SchemaNo, _TableNo, _TablePre, _TablePost,  _ErrorSchema, _ErrorTable, _ForceRetainMsg) ->
     {ok, Message};
 
-on_message_publish(Message, SchemaNo, TableNo, TablePre, TablePost, ErrorSchema, ErrorTable) ->
+on_message_publish(Message, SchemaNo, TableNo, TablePre, TablePost, ErrorSchema, ErrorTable, ForceRetainMsg) ->
     % io:format("Publish ~s~n", [emqx_message:format(Env)]),
     % io:format("Actual Message ~p~n", [Message]),
     % MessageMaps = emqx_message:to_map(Message),
@@ -34,7 +34,7 @@ on_message_publish(Message, SchemaNo, TableNo, TablePre, TablePost, ErrorSchema,
 
     {message,  MsgId,  QoS,  ClientId,  Flags,  Headers,  Topic,  Payload, Timestamp, Extra} = Message,
     % Create a new map with the retain field updated to true
-    UpdatedMessage = {message, MsgId, QoS, ClientId, Flags#{retain => true}, Headers, Topic, Payload, Timestamp, Extra},
+    UpdatedMessage = {message, MsgId, QoS, ClientId, Flags#{retain => ForceRetainMsg}, Headers, Topic, Payload, Timestamp, Extra},
     % io:format("Updated Message ~p~n", [UpdatedMessage]),
 
     spawn(fun() ->
